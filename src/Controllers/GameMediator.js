@@ -1,8 +1,8 @@
-import { RenderGameboardUI } from "../DOM/RenderGameboardUI.js";
-import { GameboardUIController } from "../DOM/GameboardUIController.js";
-import { Player } from "../player.js";
-import { Gameboard } from "../gameboard.js";
-import { RenderOutcome } from "../DOM/RenderOutcome.js";
+import { RenderGameboardUI } from "../UI/RenderGameboardUI.js";
+import { GameboardUIController } from "../UI/GameboardUIController.js";
+import { Player } from "../Core/Player.js";
+import { Gameboard } from "../Core/Gameboard.js";
+import { RenderOutcome } from "../UI/RenderOutcome.js";
 
 export const GameMediator = (eventBus) => {
   const EVENTS = {

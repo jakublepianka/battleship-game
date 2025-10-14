@@ -1,4 +1,4 @@
-import { Ship } from "./ship.js";
+import { Ship } from "./Ship.js";
 
 export const Gameboard = (playerName, gameActions) => {
   const player = playerName;
@@ -98,12 +98,12 @@ export const Gameboard = (playerName, gameActions) => {
     let shipLength = coordList.length;
     const keyStr = JSON.stringify(coordList);
     ships.set(keyStr, Ship(shipLength));
-    publishShipPlacement();
   }
 
   function setNewShipPlacement(){
     ships.clear();
     placeShipsRandomly(shipsToPlace, offsetValues);
+    publishShipPlacement();
   }
 
   function receiveAttack(coords) {
@@ -158,9 +158,7 @@ export const Gameboard = (playerName, gameActions) => {
   }
 
   return {
-    ships,
     setNewShipPlacement,
     receiveAttack,
-    areShipsSunk,
   };
 };

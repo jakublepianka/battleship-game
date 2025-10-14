@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { Ship } from "../ship.js"
+import { Ship } from "../Core/Ship.js"
 
 test('register hit on ship', () => {
   const ship = Ship(4);
