@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "Gunplay";
+  src: url("../assets/gunplay.otf");
+}
+
+.outcome-container {
+  background-color: rgb(87, 166, 161);
+  display: grid;
+  position: absolute;
+  bottom: 38%;
+  padding: 42px;
+  border-radius: 8px;
+  gap: 16px;
+  z-index: 999;
+  box-shadow: 5px 5px 15px -3px rgb(52, 76, 100);
+}
+
+.outcome-text {
+  font-family: 'Gunplay';
+  font-size: 5vw;
+}
+
+.restart-button {
+  background-color: rgb(41, 27, 62);
+  border: none;
+  border-radius: 8px;
+  color: whitesmoke;
+  padding: 6px 0;
+  font-size: 2vw;
+  transition: 
+    background-color 0.1s ease-in-out,
+    color 0.1s ease-in-out;
+}
+
+.restart-button:hover {
+  background-color: rgb(52, 76, 100);
+  color: rgb(182, 222, 244);
+  cursor: pointer;
+}

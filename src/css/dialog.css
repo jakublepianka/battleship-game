@@ -1,0 +1,42 @@
+dialog {
+  transform: translateY(-20px);
+  background-color: rgb(87, 123, 141);
+  border: 0;
+  border-radius: 4px;
+  padding: 24px 24px 20px;
+  box-shadow: 5px 5px 15px -3px rgb(52, 76, 100);
+}
+
+.dialog-content {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+
+.dialog-content > input {
+  outline: none;
+  border: none;
+  border-radius: 4px;
+  background-color: whitesmoke;
+  text-align: center;
+  padding: 6px 0;
+}
+
+#submit-name-button {
+  background-color: rgb(36, 7, 80);
+  border: none;
+  border-radius: 4px;
+  color: whitesmoke;
+  padding: 6px 0;
+  transition: 
+    background-color 0.1s ease-in-out,
+    color 0.1s ease-in-out;
+}
+
+#submit-name-button:hover {
+  background-color: rgb(14, 212, 199);
+  color: rgb(36, 7, 80);
+  cursor: pointer;
+}

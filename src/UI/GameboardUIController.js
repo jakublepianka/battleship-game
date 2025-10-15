@@ -14,7 +14,8 @@ export const GameboardUIController = (player, isComputer, uiActions) => {
       for (const coord of arr) {
         let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
         const el = gameboardContainer.querySelector(safeId);
-        el.style.backgroundColor = "lightblue";
+        el.style.backgroundColor = "rgb(148, 148, 148)";
+        el.style.border = "4px solid rgb(100,100,100)";
       }
     }
   };
@@ -84,12 +85,16 @@ export const GameboardUIController = (player, isComputer, uiActions) => {
     for (const coord of missedArr) {
       let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
       const el = gameboardEl.querySelector(safeId);
-      el.textContent = "X";
+      el.classList.add("missed");
+      el.textContent = "×";
     }
     for (const coord of hitArr) {
       let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
       const el = gameboardEl.querySelector(safeId);
-      el.style.backgroundColor = "red";
+      el.classList.add("hit");
+      el.style.backgroundColor = "rgba(232, 53, 53, 1)";
+      el.style.border = "2px solid rgb(100,100,100)";
+      el.style.boxShadow = "inset 0 0 5px 2px rgb(100,100,100)";
     }
   }
 
