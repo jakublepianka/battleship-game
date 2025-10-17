@@ -1,5 +1,4 @@
 # Battleship Game
-===============
 
 [Preview](https://jakublepianka.github.io/battleship-game/)
 
@@ -54,4 +53,5 @@ A small Battleship implementation built with vanilla JavaScript, modular factori
 ## Testing
 - Unit tests live in src/tests and can be run with jest.
 - Tests currently focus on Ship and Gameboard behavior. Add more as you extract logic from controllers/UI.
+
 
