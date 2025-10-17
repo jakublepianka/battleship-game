@@ -1,6 +1,6 @@
 # Battleship Game
 ===============
-
+[Preview](https://jakublepianka.github.io/battleship-game/)
 A small Battleship implementation built with vanilla JavaScript, modular factories and an event-driven architecture. The project separates domain logic (Player, Gameboard, Ship), UI rendering/controllers, and a central coordinator (GameMediator) that orchestrates interactions.
 
 ## Key ideas
