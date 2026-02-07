@@ -24,6 +24,12 @@ export const RenderDialog = (mediator) => {
   function isValidName(input) {
     let isValid = false;
 
+    if (input.value === "Computer") {
+      input.setCustomValidity("This name is reserved for Computer");
+      input.reportValidity();
+      return false;
+    }
+
     switch (true) {
       case input.validity.patternMismatch:
         input.setCustomValidity(`Please use letters and no spaces`);

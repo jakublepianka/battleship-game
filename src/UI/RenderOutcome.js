@@ -17,7 +17,6 @@ export const RenderOutcome = (playerName, mainActions) => {
 
   gameContainers.forEach(container => {
     container.style.filter = "blur(5px)";
-    console.log(container);
   })
 
   restartButton.addEventListener("click", () => {
