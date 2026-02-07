@@ -44,7 +44,7 @@ export const GameMediator = (eventBus) => {
   const onAttackSent = ({ receiver, coords }) => {
     state.gameboards.get(receiver).receiveAttack(JSON.parse(coords));
   };
-  const onAttackReceived = ({ receiver, missed, hit, areSunk }) => {
+  const onAttackReceived = ({ receiver, missed, hit, target, areSunk }) => {
     state.uiControllers
       .get(receiver)
       .handleReceiveAttack(receiver, missed, hit);
@@ -56,12 +56,13 @@ export const GameMediator = (eventBus) => {
     }
     if (state.isOver) return;
     if (receiver === "Computer") {
-      state.players.get("Computer").attackRandomSquare();
+      state.players.get("Computer").attack();
     }
     if (receiver !== "Computer") {
       const computer = state.players.get("Computer");
       computer.hits = hit;
-      computer.misses = missed;
+      // computer.misses = missed;
+      computer.target = target;
       state.uiControllers.get("Computer").listen();
     }
   };

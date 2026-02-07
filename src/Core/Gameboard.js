@@ -5,6 +5,7 @@ export const Gameboard = (playerName, gameActions) => {
   const ships = new Map();
   const missedCoords = [];
   const hitCoords = [];
+  let targetCoords;
   const shipsToPlace = [2, 3, 3, 4, 5];
   const offsetValues = [
     [-1, -1],[-1, 0],
@@ -35,7 +36,6 @@ export const Gameboard = (playerName, gameActions) => {
       placeShip(hypotheticalPlacement);
       availableShips.pop();
     }
-
   }
 
   function getRandomCoord(takenSpots){
@@ -113,9 +113,11 @@ export const Gameboard = (playerName, gameActions) => {
       ships.get(hitShipKey).hit();
       if (isDuplicate(hitCoords, coords)) return;
       hitCoords.push(coords);
+      targetCoords = coords;
     } else {
       if (isDuplicate(missedCoords, coords)) return;
       missedCoords.push(coords);
+      targetCoords = coords;
     }
     publishAttackInfo();
   }
@@ -146,6 +148,7 @@ export const Gameboard = (playerName, gameActions) => {
       receiver: player,
       missed: missedCoords,
       hit: hitCoords,
+      target: targetCoords,
       areSunk: areShipsSunk()
     });
   }
