@@ -8,29 +8,42 @@ export const Gameboard = (playerName, gameActions) => {
   let targetCoords;
   const shipsToPlace = [2, 3, 3, 4, 5];
   const offsetValues = [
-    [-1, -1],[-1, 0],
-    [-1, 1], [0, -1],
-    [0, 1],  [1, -1],
-    [1, 1],  [1, 0],
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 1],
+    [1, 0],
   ];
 
-  function placeShipsRandomly(shipsToPlace, offsetValues){
+  function placeShipsRandomly(shipsToPlace, offsetValues) {
     const availableShips = [...shipsToPlace];
     const offsetPlacements = [];
 
-    outer: while(availableShips.length !== 0){
+    outer: while (availableShips.length !== 0) {
       let randomCoord = getRandomCoord(offsetPlacements);
       let isHorizontal = Math.round(Math.random());
       let shipLength = availableShips.at(-1);
-      let hypotheticalPlacement = isHorizontal 
+      let hypotheticalPlacement = isHorizontal
         ? getHorizontalCoords(randomCoord, shipLength)
         : getVerticalCoords(randomCoord, shipLength);
-      let currOffsetPlacement = getOffsetPlacement(hypotheticalPlacement, offsetValues);
+      let currOffsetPlacement = getOffsetPlacement(
+        hypotheticalPlacement,
+        offsetValues,
+      );
 
-      for (const coord of hypotheticalPlacement){
-        if (offsetPlacements.some(occupiedCoord => JSON.stringify(occupiedCoord) === JSON.stringify(coord))) continue outer; 
+      for (const coord of hypotheticalPlacement) {
+        if (
+          offsetPlacements.some(
+            (occupiedCoord) =>
+              toString(occupiedCoord) === toString(coord)
+          )
+        )
+          continue outer;
       }
-      for (const offsetCoord of currOffsetPlacement){
+      for (const offsetCoord of currOffsetPlacement) {
         offsetPlacements.push(offsetCoord);
       }
       placeShip(hypotheticalPlacement);
@@ -38,16 +51,16 @@ export const Gameboard = (playerName, gameActions) => {
     }
   }
 
-  function getRandomCoord(takenSpots){
+  function getRandomCoord(takenSpots) {
     let arr = [];
-    while(arr.length !== 2){
-      for (let i = 0; i < 2; i++){
+    while (arr.length !== 2) {
+      for (let i = 0; i < 2; i++) {
         arr.push(Math.floor(Math.random() * 10));
-      }      
+      }
       for (const coord of takenSpots) {
-        if (coord[0] === arr[0] && coord[1] === arr[1]){
+        if (coord[0] === arr[0] && coord[1] === arr[1]) {
           arr = [];
-        };
+        }
       }
     }
     return arr;
@@ -56,10 +69,10 @@ export const Gameboard = (playerName, gameActions) => {
   function getHorizontalCoords(coords, shipLength) {
     const arr = [];
     for (let i = coords[1]; i < shipLength + coords[1]; i++) {
-      if (isOutOfBounds([coords[0], i])){
-        arr.push([coords[0], coords[1] - (i - 9)])
+      if (isOutOfBounds([coords[0], i])) {
+        arr.push([coords[0], coords[1] - (i - 9)]);
         continue;
-      };
+      }
       arr.push([coords[0], i]);
     }
     return arr;
@@ -68,26 +81,33 @@ export const Gameboard = (playerName, gameActions) => {
   function getVerticalCoords(coords, shipLength) {
     const arr = [];
     for (let i = coords[0]; i < shipLength + coords[0]; i++) {
-      if (isOutOfBounds([coords[0], i])){
-        arr.push([coords[0] - (i - 9), coords[1]])
+      if (isOutOfBounds([coords[0], i])) {
+        arr.push([coords[0] - (i - 9), coords[1]]);
         continue;
-      };
+      }
       arr.push([i, coords[1]]);
     }
     return arr;
   }
 
   function isOutOfBounds(coord) {
-    if (coord[0] < 0 || coord[0] > 9 || coord[1] < 0 || coord[1] > 9) return true;
+    if (coord[0] < 0 || coord[0] > 9 || coord[1] < 0 || coord[1] > 9)
+      return true;
     return false;
   }
 
-  function getOffsetPlacement(coordList, shipOffset){
-   const arr = [];
+  function getOffsetPlacement(coordList, shipOffset) {
+    const arr = [];
     for (const coord of coordList) {
-      for (const offset of shipOffset){
+      for (const offset of shipOffset) {
         let offsetCoord = [coord[0] + offset[0], coord[1] + offset[1]];
-        if (arr.some(enteredCoord => JSON.stringify(enteredCoord) === JSON.stringify(offsetCoord))) continue;
+        if (
+          arr.some(
+            (enteredCoord) =>
+              toString(enteredCoord) === toString(offsetCoord),
+          )
+        )
+          continue;
         arr.push(offsetCoord);
       }
     }
@@ -100,7 +120,7 @@ export const Gameboard = (playerName, gameActions) => {
     ships.set(keyStr, Ship(shipLength));
   }
 
-  function setNewShipPlacement(){
+  function setNewShipPlacement() {
     ships.clear();
     placeShipsRandomly(shipsToPlace, offsetValues);
     publishShipPlacement();
@@ -149,7 +169,7 @@ export const Gameboard = (playerName, gameActions) => {
       missed: missedCoords,
       hit: hitCoords,
       target: targetCoords,
-      areSunk: areShipsSunk()
+      areSunk: areShipsSunk(),
     });
   }
 
@@ -158,6 +178,10 @@ export const Gameboard = (playerName, gameActions) => {
       keys: ships.keys(),
       publishedPlayer: player,
     });
+  }
+
+  function toString(coord) {
+    return `[${coord[0]},${coord[1]}]`;
   }
 
   return {

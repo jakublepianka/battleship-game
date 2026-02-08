@@ -1,6 +1,6 @@
 export const Player = (givenName, opponentName, isComputer, gameActions) => {
   const name = isComputer ? "Computer" : givenName;
-  const targetOffsets = [
+  const probingOffsets = [
     [-1, 0],
     [1, 0],
     [0, -1],
@@ -49,8 +49,8 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
 
   function finishShip(shipHits, tried, isHorizontal) {
     const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
-    const minString = JSON.stringify(minEdgeCoord);
-    const maxString = JSON.stringify(maxEdgeCoord);
+    const minString = toString(minEdgeCoord);
+    const maxString = toString(maxEdgeCoord);
     if (!isBlockedCoord(minEdgeCoord, tried)) return publishAttack(minString);
     if (!isBlockedCoord(maxEdgeCoord, tried)) return publishAttack(maxString);
     return attackRandomSquare();
@@ -58,8 +58,8 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
 
   function probeAdjacent(lastHit, tried) {
     let coord = [];
-    for (let i = 0; i < targetOffsets.length; i++) {
-      let currOffset = targetOffsets[i];
+    for (let i = 0; i < probingOffsets.length; i++) {
+      let currOffset = probingOffsets[i];
       coord = [lastHit[0] + currOffset[0], lastHit[1] + currOffset[1]];
       if (isBlockedCoord(coord, tried)) {
         coord = getRandomCoords(tried);
@@ -67,12 +67,12 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
       }
       break;
     }
-    publishAttack(JSON.stringify(coord));
+    publishAttack(toString(coord));
   }
 
   function attackRandomSquare() {
     const randomCoords = getRandomCoords(triedShots);
-    publishAttack(JSON.stringify(randomCoords));
+    publishAttack(toString(randomCoords));
   }
 
   function evaluateCurrentHits(shipHits, tried, remainingShips, isHorizontal) {
@@ -150,6 +150,10 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
 
   function hasBeenTried(coord, tried) {
     return tried.some((triedCoord) => sameCoords(triedCoord, coord));
+  }
+
+  function toString(coord){
+    return `[${coord[0]},${coord[1]}]`;
   }
 
   return {
