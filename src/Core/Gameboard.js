@@ -127,7 +127,7 @@ export const Gameboard = (playerName, gameActions) => {
   }
 
   function receiveAttack(coords) {
-    const hitShipKey = findHit(coords);
+    const hitShipKey = findHitShip(coords);
 
     if (hitShipKey) {
       ships.get(hitShipKey).hit();
@@ -142,7 +142,7 @@ export const Gameboard = (playerName, gameActions) => {
     publishAttackInfo();
   }
 
-  function findHit(coords) {
+  function findHitShip(coords) {
     for (const key of ships.keys()) {
       if (key.includes(`${coords}`)) return key;
     }
@@ -156,7 +156,16 @@ export const Gameboard = (playerName, gameActions) => {
     return false;
   }
 
-  function areShipsSunk() {
+  function sunkShipCoords(coord) {
+    const hitShipKey = findHitShip(coord);
+    const ship = ships.get(`${hitShipKey}`);
+    if (ship && ship.isSunk()) {
+      return JSON.parse(hitShipKey);
+    }
+    return [];
+  }
+
+  function areAllShipsSunk() {
     for (const ship of ships.values()) {
       if (!ship.isSunk()) return false;
     }
@@ -169,7 +178,8 @@ export const Gameboard = (playerName, gameActions) => {
       missed: missedCoords,
       hit: hitCoords,
       target: targetCoords,
-      areSunk: areShipsSunk(),
+      sunkShip: sunkShipCoords(targetCoords),
+      areSunk: areAllShipsSunk(),
     });
   }
 

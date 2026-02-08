@@ -1,5 +1,4 @@
 export const Player = (givenName, opponentName, isComputer, gameActions) => {
-  const name = isComputer ? "Computer" : givenName;
   const probingOffsets = [
     [-1, 0],
     [1, 0],
@@ -7,13 +6,18 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     [0, 1],
   ];
   const adjacentOffsets = [
-    [-1, -1],[-1, 0],
-    [-1, 1], [0, -1],
-    [0, 1],  [1, -1],
-    [1, 1],  [1, 0],
-  ];  
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 1],
+    [1, 0],
+  ];
   let excludedCoords = [];
   let hits = [];
+  let isCurrentTargetSunk = false;
   let shipsLeft = [5, 4, 3, 3, 2];
 
   function getRandomCoords(excluded) {
@@ -41,8 +45,13 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
   function performAttack() {
     const isHorizontalAxis =
       hits.length > 1 ? isHorizontal(hits[0], hits[1]) : undefined;
-
-    evaluateCurrentHits(hits, excludedCoords, shipsLeft, isHorizontalAxis);
+    evaluateCurrentHits(
+      hits,
+      isCurrentTargetSunk,
+      excludedCoords,
+      shipsLeft,
+      isHorizontalAxis,
+    );
 
     if (hits.length > 1) {
       finishShip(hits, shipsLeft, excludedCoords, isHorizontalAxis);
@@ -55,8 +64,10 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
     const minString = toString(minEdgeCoord);
     const maxString = toString(maxEdgeCoord);
-    if (!isBlockedCoord(minEdgeCoord, excluded)) return publishAttack(minString);
-    else if (!isBlockedCoord(maxEdgeCoord, excluded)) return publishAttack(maxString);
+    if (!isBlockedCoord(minEdgeCoord, excluded))
+      return publishAttack(minString);
+    else if (!isBlockedCoord(maxEdgeCoord, excluded))
+      return publishAttack(maxString);
     else return attackWithDynamicSpacing(remainingShips, excluded);
   }
 
@@ -81,11 +92,14 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
 
   function attackWithDynamicSpacing(remainingShips, excluded) {
     const smallestShip = Math.min(...remainingShips);
-    const potentialCoords = []; 
-    for (let i = 0; i <= 9; i++){
-      for (let j = 0; j <= 9; j++){
-        if ((i+j) % smallestShip === 0 && !hasBeenExcluded([i,j], excluded)) {
-          potentialCoords.push([i,j]);
+    const potentialCoords = [];
+    for (let i = 0; i <= 9; i++) {
+      for (let j = 0; j <= 9; j++) {
+        if (
+          (i + j) % smallestShip === 0 &&
+          !hasBeenExcluded([i, j], excluded)
+        ) {
+          potentialCoords.push([i, j]);
         }
       }
     }
@@ -95,13 +109,10 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     } else attackRandomSquare(excluded);
   }
 
-  function evaluateCurrentHits(shipHits, excluded, remainingShips, isHorizontal) {
+  function evaluateCurrentHits(shipHits, isSunk, excluded, remainingShips) {
     const hitCount = shipHits.length;
     if (hitCount < 2) return;
-    if (
-      hitCount === Math.max(...remainingShips) ||
-      isSunkConfirmed(shipHits, excluded, isHorizontal)
-    ) {
+    if (hitCount === Math.max(...remainingShips) || isSunk) {
       markShipSunk(shipHits, excluded, hitCount, remainingShips);
       return true;
     } else return false;
@@ -123,13 +134,6 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
       }
     }
     return [...excludedCoords, ...coordsToExclude];
-  }
-
-  function isSunkConfirmed(shipHits, excluded, isHorizontal) {
-    const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
-    return (
-      isBlockedCoord(minEdgeCoord, excluded) && isBlockedCoord(maxEdgeCoord, excluded)
-    );
   }
 
   function getEdgeValues(shipHits, isHorizontal) {
@@ -184,7 +188,7 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     return excluded.some((excludedCoord) => sameCoords(excludedCoord, coord));
   }
 
-  function toString(coord){
+  function toString(coord) {
     return `[${coord[0]},${coord[1]}]`;
   }
 
@@ -199,6 +203,9 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     },
     set target(value) {
       excludedCoords.push(value);
+    },
+    set isSunk(value) {
+      isCurrentTargetSunk = value;
     },
     attack: performAttack,
   };
