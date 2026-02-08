@@ -6,20 +6,24 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     [0, -1],
     [0, 1],
   ];
-  let triedShots = [];
+  const adjacentOffsets = [
+    [-1, -1],[-1, 0],
+    [-1, 1], [0, -1],
+    [0, 1],  [1, -1],
+    [1, 1],  [1, 0],
+  ];  
+  let excludedCoords = [];
   let hits = [];
-  // let sunkenCoords = [];
-  // let misses = [];
   let shipsLeft = [5, 4, 3, 3, 2];
 
-  function getRandomCoords(tried) {
+  function getRandomCoords(excluded) {
     let coord = [];
     while (coord.length < 2) {
       for (let i = 0; i < 2; i++) {
         coord.push(Math.floor(Math.random() * 10));
       }
-      for (const triedCoord of tried) {
-        if (sameCoords(coord, triedCoord)) coord = [];
+      for (const excludedCoord of excluded) {
+        if (sameCoords(coord, excludedCoord)) coord = [];
       }
     }
     return coord;
@@ -38,31 +42,31 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     const isHorizontalAxis =
       hits.length > 1 ? isHorizontal(hits[0], hits[1]) : undefined;
 
-    evaluateCurrentHits(hits, triedShots, shipsLeft, isHorizontalAxis);
+    evaluateCurrentHits(hits, excludedCoords, shipsLeft, isHorizontalAxis);
 
     if (hits.length > 1) {
-      finishShip(hits, triedShots, isHorizontalAxis);
+      finishShip(hits, excludedCoords, isHorizontalAxis);
     } else if (hits.length === 1) {
-      probeAdjacent(hits[0], triedShots);
-    } else attackRandomSquare();
+      probeAdjacent(hits[0], excludedCoords);
+    } else attackRandomSquare(excludedCoords);
   }
 
-  function finishShip(shipHits, tried, isHorizontal) {
+  function finishShip(shipHits, excluded, isHorizontal) {
     const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
     const minString = toString(minEdgeCoord);
     const maxString = toString(maxEdgeCoord);
-    if (!isBlockedCoord(minEdgeCoord, tried)) return publishAttack(minString);
-    if (!isBlockedCoord(maxEdgeCoord, tried)) return publishAttack(maxString);
-    return attackRandomSquare();
+    if (!isBlockedCoord(minEdgeCoord, excluded)) return publishAttack(minString);
+    else if (!isBlockedCoord(maxEdgeCoord, excluded)) return publishAttack(maxString);
+    else return attackRandomSquare(excluded);
   }
 
-  function probeAdjacent(lastHit, tried) {
+  function probeAdjacent(lastHit, excluded) {
     let coord = [];
     for (let i = 0; i < probingOffsets.length; i++) {
       let currOffset = probingOffsets[i];
       coord = [lastHit[0] + currOffset[0], lastHit[1] + currOffset[1]];
-      if (isBlockedCoord(coord, tried)) {
-        coord = getRandomCoords(tried);
+      if (isBlockedCoord(coord, excluded)) {
+        coord = getRandomCoords(excluded);
         continue;
       }
       break;
@@ -70,33 +74,45 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     publishAttack(toString(coord));
   }
 
-  function attackRandomSquare() {
-    const randomCoords = getRandomCoords(triedShots);
+  function attackRandomSquare(excluded) {
+    const randomCoords = getRandomCoords(excluded);
     publishAttack(toString(randomCoords));
   }
 
-  function evaluateCurrentHits(shipHits, tried, remainingShips, isHorizontal) {
+  function evaluateCurrentHits(shipHits, excluded, remainingShips, isHorizontal) {
     const hitCount = shipHits.length;
     if (hitCount < 2) return;
     if (
       hitCount === Math.max(...remainingShips) ||
-      isSunkConfirmed(shipHits, tried, isHorizontal)
+      isSunkConfirmed(shipHits, excluded, isHorizontal)
     ) {
-      markShipSunk(hitCount, remainingShips);
+      markShipSunk(shipHits, excluded, hitCount, remainingShips);
       return true;
     } else return false;
   }
 
-  function markShipSunk(hitCount, remainingShips) {
+  function markShipSunk(shipHits, excluded, hitCount, remainingShips) {
     removeShip(hitCount, remainingShips);
-    // sunkenCoords = [...sunkenCoords, ...[shipHits]];
+    excludedCoords = excludeAdjacentCoords(shipHits, excluded);
     hits = [];
   }
 
-  function isSunkConfirmed(shipHits, tried, isHorizontal) {
+  function excludeAdjacentCoords(shipCoords, excluded) {
+    const coordsToExclude = [];
+    for (const coord of shipCoords) {
+      for (const offset of adjacentOffsets) {
+        let coordToExclude = [coord[0] + offset[0], coord[1] + offset[1]];
+        if (isBlockedCoord(coordToExclude, excluded)) continue;
+        coordsToExclude.push(coordToExclude);
+      }
+    }
+    return [...excludedCoords, ...coordsToExclude];
+  }
+
+  function isSunkConfirmed(shipHits, excluded, isHorizontal) {
     const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
     return (
-      isBlockedCoord(minEdgeCoord, tried) && isBlockedCoord(maxEdgeCoord, tried)
+      isBlockedCoord(minEdgeCoord, excluded) && isBlockedCoord(maxEdgeCoord, excluded)
     );
   }
 
@@ -121,8 +137,8 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
       throw new Error("Invalid aggregate name: " + aggregate + " is invalid");
   }
 
-  function isBlockedCoord(coord, tried) {
-    return isOutOfBounds(coord) || hasBeenTried(coord, tried);
+  function isBlockedCoord(coord, excluded) {
+    return isOutOfBounds(coord) || hasBeenExcluded(coord, excluded);
   }
 
   function removeShip(size, ships) {
@@ -148,8 +164,8 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     return false;
   }
 
-  function hasBeenTried(coord, tried) {
-    return tried.some((triedCoord) => sameCoords(triedCoord, coord));
+  function hasBeenExcluded(coord, excluded) {
+    return excluded.some((excludedCoord) => sameCoords(excludedCoord, coord));
   }
 
   function toString(coord){
@@ -161,16 +177,12 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
       if (
         value.length > 0 &&
         !hits.some((coord) => sameCoords(coord, value.at(-1))) &&
-        !hasBeenTried(value.at(-1), triedShots)
+        !hasBeenExcluded(value.at(-1), excludedCoords)
       )
         hits.push(value.at(-1));
     },
-    // set misses(value) {
-    //   misses = value;
-    // },
     set target(value) {
-      triedShots.push(value);
-      // lastShot = value;
+      excludedCoords.push(value);
     },
     attack: performAttack,
   };
