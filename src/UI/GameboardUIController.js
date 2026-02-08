@@ -6,26 +6,25 @@ export const GameboardUIController = (player, isComputer, uiActions) => {
 
   const handleShipPlacement = (keys, publishedPlayer) => {
     if (player !== publishedPlayer) return;
-    gameboardContainer.querySelectorAll(".square").forEach((square) => {
-      if (square.style.backgroundColor !== "") square.removeAttribute("style");
+    gameboardContainer.querySelectorAll(".square.ship").forEach((square) => {
+      square.classList.remove("ship");
     });
     for (const key of keys) {
       let arr = JSON.parse(key);
       for (const coord of arr) {
         let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
         const el = gameboardContainer.querySelector(safeId);
-        el.style.backgroundColor = "rgb(148, 148, 148)";
-        el.style.border = "4px solid rgb(100,100,100)";
+        el.classList.add("ship");
       }
     }
   };
 
-  const handleReceiveAttack = (receiver, missed, hit) => {
+  const handleReceiveAttack = (receiver, missed, hit, sunkShip) => {
     if (receiver !== player) return;
     const defendersBoard = document.querySelector(
       `.gameboard-container` + `#${receiver}`,
     );
-    refreshGameboard(missed, hit, defendersBoard);
+    refreshGameboard(missed, hit, sunkShip, defendersBoard);
     stopListening();
 
     if (!hasBegun) {
@@ -81,20 +80,18 @@ export const GameboardUIController = (player, isComputer, uiActions) => {
     });
   }
 
-  function refreshGameboard(missedArr, hitArr, gameboardEl) {
-    for (const coord of missedArr) {
+  function refreshGameboard(missedArr, hitArr, sunkShipArr, gameboardEl) {
+    changeSquareClass("missed", missedArr, gameboardEl);
+    changeSquareClass("hit", hitArr, gameboardEl);
+    changeSquareClass("sunk", sunkShipArr, gameboardEl);
+  }
+
+  function changeSquareClass(className, arr, gameboardEl) {
+    for (const coord of arr) {
       let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
       const el = gameboardEl.querySelector(safeId);
-      el.classList.add("missed");
-      el.textContent = "×";
-    }
-    for (const coord of hitArr) {
-      let safeId = `#\\[${coord[0]}\\,${coord[1]}\\]`;
-      const el = gameboardEl.querySelector(safeId);
-      el.classList.add("hit");
-      el.style.backgroundColor = "rgba(232, 53, 53, 1)";
-      el.style.border = "2px solid rgb(100,100,100)";
-      el.style.boxShadow = "inset 0 0 5px 2px rgb(100,100,100)";
+      el.classList.add(className);
+      if (className === "missed") el.textContent = "×";
     }
   }
 

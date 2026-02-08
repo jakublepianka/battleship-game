@@ -99,6 +99,7 @@ header {
 }
 
 .square {
+  position: relative;
   font-family: Arial, Helvetica, sans-serif;
   box-sizing: border-box;
   aspect-ratio: 1/1;
@@ -106,10 +107,30 @@ header {
   user-select: none;
 }
 
-.square + .missed {
+.square.ship {
+  background-color: rgb(148, 148, 148);
+  border: 4px solid rgb(100,100,100);
+}
+
+.square.hit {
+  background-color: rgba(232, 53, 53, 1);
+  border: 2px solid rgb(100,100,100);
+  box-shadow: inset 0 0 5px 2px rgb(100,100,100);
+}
+
+.square.sunk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  clip-path: polygon(48% 45%, 0 0, 14% 0, 65% 49%, 53% 54%, 100% 100%, 86% 100%, 35% 51%);
+}
+
+.square.missed {
   display: grid;
-  align-items: center;
-  justify-content: center;
+  place-content: center;
   line-height: 46px;
   font-size: 4.5rem;
   overflow: hidden;
@@ -125,12 +146,7 @@ header {
 }
 
 .square:nth-child(1) {
-  display: grid;
-  align-items: center;
-  justify-content: center;
   border-radius: 9px 0 0 0;
-  line-height: 46px;
-  font-size: 4.5rem;
 }
 
 .square:nth-child(10) {
@@ -174,8 +190,10 @@ header {
     height: 7vw;
     width: 7vw;
   }
-  /* .gameboard-container {
-    grid-template-columns: repeat(10, 1fr);
-  } */
+
+  .square + .missed {
+    place-content: center;
+    font-size: 10vw;
+  }
 }
 
