@@ -45,19 +45,19 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     evaluateCurrentHits(hits, excludedCoords, shipsLeft, isHorizontalAxis);
 
     if (hits.length > 1) {
-      finishShip(hits, excludedCoords, isHorizontalAxis);
+      finishShip(hits, shipsLeft, excludedCoords, isHorizontalAxis);
     } else if (hits.length === 1) {
       probeAdjacent(hits[0], excludedCoords);
-    } else attackRandomSquare(excludedCoords);
+    } else attackWithDynamicSpacing(shipsLeft, excludedCoords);
   }
 
-  function finishShip(shipHits, excluded, isHorizontal) {
+  function finishShip(shipHits, remainingShips, excluded, isHorizontal) {
     const [minEdgeCoord, maxEdgeCoord] = getEdgeValues(shipHits, isHorizontal);
     const minString = toString(minEdgeCoord);
     const maxString = toString(maxEdgeCoord);
     if (!isBlockedCoord(minEdgeCoord, excluded)) return publishAttack(minString);
     else if (!isBlockedCoord(maxEdgeCoord, excluded)) return publishAttack(maxString);
-    else return attackRandomSquare(excluded);
+    else return attackWithDynamicSpacing(remainingShips, excluded);
   }
 
   function probeAdjacent(lastHit, excluded) {
@@ -77,6 +77,22 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
   function attackRandomSquare(excluded) {
     const randomCoords = getRandomCoords(excluded);
     publishAttack(toString(randomCoords));
+  }
+
+  function attackWithDynamicSpacing(remainingShips, excluded) {
+    const smallestShip = Math.min(...remainingShips);
+    const potentialCoords = []; 
+    for (let i = 0; i <= 9; i++){
+      for (let j = 0; j <= 9; j++){
+        if ((i+j) % smallestShip === 0 && !hasBeenExcluded([i,j], excluded)) {
+          potentialCoords.push([i,j]);
+        }
+      }
+    }
+    if (potentialCoords.length > 0) {
+      const randomIndex = Math.floor(Math.random() * potentialCoords.length);
+      publishAttack(toString(potentialCoords[randomIndex]));
+    } else attackRandomSquare(excluded);
   }
 
   function evaluateCurrentHits(shipHits, excluded, remainingShips, isHorizontal) {
