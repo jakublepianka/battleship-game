@@ -2,84 +2,113 @@
 import { Gameboard } from "../Core/Gameboard.js";
 
 describe("Gameboard", () => {
-
+  let gameboard;
   const mockGameActions = {
+    sendAttack: jest.fn(),
     receiveAttack: jest.fn(),
-    placeShip: jest.fn()
+    placeShip: jest.fn(),
   };
 
-  test("receiveAttack publishes correct attack info", () => {
-    const gameboard = Gameboard("player1", mockGameActions);
+  function isOutOfBounds(coordKeys) {
+    for (const coordKey of coordKeys) {
+      if (/-?\d{2,}|-\d/.test(coordKey)) return true;
+    }
+    return false;
+  }
 
-    gameboard.receiveAttack([9,9]);
+  function sinkAllShips(coordKeys, gameboard) {
+    for (const coordKey of coordKeys) {
+      let coordList = JSON.parse(coordKey);
+      for(let i = 0; i < coordList.length; i++) {
+        gameboard.receiveAttack(coordList[i]);
+      }
+    }
+  }
 
+  function sinkSpecificShip(coordList, gameboard) {
+    for (let i = 0; i < coordList.length; i++) {
+      gameboard.receiveAttack(coordList[i]); 
+    }
+  }
+
+  beforeEach(() => {
+    gameboard = Gameboard("player1", mockGameActions);
+    jest.clearAllMocks();
+  });
+
+  test("receiveAttack publishes missed attack info", () => {
+    gameboard.receiveAttack([9, 9]);
     expect(mockGameActions.receiveAttack).toHaveBeenCalledWith({
       receiver: "player1",
-      missed: [[9,9]],
+      missed: [[9, 9]],
       hit: [],
-      areSunk: true
+      target: [9, 9],
+      sunkShip: [],
+      areSunk: true,
     });
   });
 
-  test("setNewShipPlacement publishes correct gameboard state", () => {
-    const gameboard = Gameboard("player1", mockGameActions);
-
+  test("setNewShipPlacement places ships within gameboard bounds", () => {
     gameboard.setNewShipPlacement();
-
     expect(mockGameActions.placeShip).toHaveBeenCalled();
-    expect(mockGameActions.placeShip).toHaveBeenCalledWith(expect.objectContaining({
-      publishedPlayer: "player1"
-    }));
-
+    const coordKeys = mockGameActions.placeShip.mock.calls[0][0].keys;
+    expect(isOutOfBounds(coordKeys)).toBe(false);
   });
 
-  // test("placeShip places ships correctly", () => {
-  //   const gameboard = Gameboard();
-  //   gameboard.placeShip([9, 9], 4, false);
-  //   const placedShip = gameboard.ships.get("[[9,9],[10,9],[11,9],[12,9]]");
-  //   expect(placedShip).toBe(undefined);
-  // });
+  test("receiveAttack publishes hit attack info", () => {
+    gameboard.setNewShipPlacement();
+    const coordKeys = mockGameActions.placeShip.mock.calls[0][0].keys;
+    const coordKey = coordKeys.next().value;
+    const coordList = JSON.parse(coordKey);
+    const coordOne = coordList[0];
+    const coordTwo = coordList[1];
+    gameboard.receiveAttack(coordOne);
+    gameboard.receiveAttack(coordTwo);
+    expect(mockGameActions.receiveAttack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hit: [coordOne, coordTwo],
+        target: coordTwo,
+      }),
+    );
+  });
 
-  // test("receiveAttack causes ship to take a hit", () => {
-  //   const gameboard = Gameboard();
-  //   gameboard.placeShip([0, 0], 4, false);
-  //   gameboard.receiveAttack([3, 0]);
-  //   expect(gameboard.ships.get("[[0,0],[1,0],[2,0],[3,0]]").stats).toEqual({
-  //     length: 4,
-  //     hitsTaken: 1,
-  //   });
-  // });
+  test("receiveAttack doesn't publish attack when same coord is attacked twice", () => {
+    gameboard.setNewShipPlacement();
+    const coordKeys = mockGameActions.placeShip.mock.calls[0][0].keys;
+    const coordKey = coordKeys.next().value;
+    const coordList = JSON.parse(coordKey);
+    const coordOne = coordList[0];
+    gameboard.receiveAttack(coordOne);
+    gameboard.receiveAttack(coordOne);
+    expect(mockGameActions.receiveAttack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hit: [coordOne],
+        target: coordOne,
+      }),
+    );
+  });
 
-  // test("placeShip on gameboard horizontally", () => {
-  //   const gameboard = Gameboard();
-  //   gameboard.placeShip([9, 9], 3, true);
-  //   const placedShip = gameboard.ships.get("[[9,9],[9,8],[9,7]]").stats;
-  //   expect(placedShip).toEqual({
-  //     length: 3,
-  //     hitsTaken: 0,
-  //   });
-  // });
+  test("receiveAttack informs when all ships are sunk", () => {
+    gameboard.setNewShipPlacement();
+    const coordKeys = mockGameActions.placeShip.mock.calls[0][0].keys;
+    sinkAllShips(coordKeys, gameboard);
+    expect(mockGameActions.receiveAttack).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        areSunk: true,
+      }),
+    );
+  });
 
-  // test("placeShip on gameboard vertically", () => {
-  //   const gameboard = Gameboard();
-  //   gameboard.placeShip([9, 9], 4, false);
-  //   const placedShip = gameboard.ships.get("[[9,9],[8,9],[7,9],[6,9]]").stats;
-  //   expect(placedShip).toEqual({
-  //     length: 4,
-  //     hitsTaken: 0,
-  //   });
-  // });
-
-  // test("getOffsetPlacement generates correct offset", () => {
-  //   const gameboard = Gameboard();
-  //   const shipWithOffset = gameboard.getOffsetPlacement([[0,0],[0,1]],[
-  //     [-1, -1],[-1, 0],
-  //     [-1, 1], [0, -1],
-  //     [0, 1],  [1, -1],
-  //     [1, 1],  [1, 0],
-  //   ]);
-  //   expect(shipWithOffset).toContainEqual([-1,-1]);
-  //   expect(shipWithOffset).toContainEqual([1,2]);
-  //   expect(shipWithOffset).toContainEqual([-1,2]);
-  // });
+  test("receiveAttack sends coords of a sunken ship when it is sunk", () => {
+    gameboard.setNewShipPlacement();
+    const coordKeys = mockGameActions.placeShip.mock.calls[0][0].keys;
+    const coordKey = coordKeys.next().value;
+    const coordList = JSON.parse(coordKey);
+    sinkSpecificShip(coordList, gameboard);
+    expect(mockGameActions.receiveAttack).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sunkShip: coordList,
+      }),
+    );
+  });
 });
