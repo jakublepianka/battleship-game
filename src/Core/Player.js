@@ -45,13 +45,11 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
   function performAttack() {
     const isHorizontalAxis =
       hits.length > 1 ? isHorizontal(hits[0], hits[1]) : undefined;
-    evaluateCurrentHits(
-      hits,
-      isCurrentTargetSunk,
-      excludedCoords,
-      shipsLeft,
-      isHorizontalAxis,
-    );
+    
+    if (hits.length >= 2 && isCurrentTargetSunk){
+      handleSunkShip(hits, excludedCoords, shipsLeft);
+      isCurrentTargetSunk = false;
+    }
 
     if (hits.length > 1) {
       finishShip(hits, shipsLeft, excludedCoords, isHorizontalAxis);
@@ -109,17 +107,8 @@ export const Player = (givenName, opponentName, isComputer, gameActions) => {
     } else attackRandomSquare(excluded);
   }
 
-  function evaluateCurrentHits(shipHits, isSunk, excluded, remainingShips) {
-    const hitCount = shipHits.length;
-    if (hitCount < 2) return;
-    if (hitCount === Math.max(...remainingShips) || isSunk) {
-      markShipSunk(shipHits, excluded, hitCount, remainingShips);
-      return true;
-    } else return false;
-  }
-
-  function markShipSunk(shipHits, excluded, hitCount, remainingShips) {
-    removeShip(hitCount, remainingShips);
+  function handleSunkShip(shipHits, excluded, remainingShips) {
+    removeShip(shipHits.length, remainingShips);
     excludedCoords = excludeAdjacentCoords(shipHits, excluded);
     hits = [];
   }
