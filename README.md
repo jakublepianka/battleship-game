@@ -9,14 +9,34 @@ A small Battleship implementation built with vanilla JavaScript, modular factori
 - UI modules (RenderBaseLayout, RenderDialog, RenderGameboardUI, GameboardUIController, RenderOutcome) handle DOM rendering and user interactions.
 - eventBus implements a lightweight pub/sub mechanism.
 - GameMediator centralizes game lifecycle, component creation and coordination to reduce direct coupling between modules.
+ 
+## Player and Gameboard details
+- `Player` now includes a deterministic computer AI algorithm used by the Computer player. The AI implements multiple strategies to make efficient choices:
+  - Probing offsets: when a single hit exists the AI probes adjacent squares in a consistent order.
+  - Axis continuation: when multiple hits indicate an axis, the AI prefers attacking along that axis (attacking edge coordinates first).
+  - Dynamic spacing: when no hits exist, the AI selects candidate coordinates spaced according to the smallest remaining ship length to cover the board efficiently.
+  - Exclusion list: the AI keeps an exclusion list of coordinates (previous targets and the adjacent squares around sunk ships) to avoid redundant shots.
+  - Sunk handling: the mediator supplies `sunkShip` info and sets an `isSunk` flag; the player then marks the ship as processed, removes its size from remaining ships, and adds adjacent coords to the exclusion list.
+
+- `Gameboard` publishes richer attack payloads to the mediator through the `gameActions.receiveAttack` callback. The payload includes:
+  - `receiver`: player name
+  - `missed`: array of missed coordinates
+  - `hit`: array of hit coordinates
+  - `target`: the most recent target coordinate
+  - `sunkShip`: coordinates of the ship that was sunk by the most recent attack (empty array if none)
+  - `areSunk`: boolean set to true when all ships are sunk (game over)
+
+These payloads let the mediator update the `Player` (Computer) with `hits`, `target`, and `isSunk` so the AI can continue its attack strategy and react when ships sink.
 
 ## Features
-- Random ship placement (computer)
+- Computer AI: probing, axis-following, dynamic spacing, and excluded-coordinate handling
+- Random ship placement
 - Player name input dialog
 - Click-to-attack UI
 - Hits / misses display
 - Reset positions and game restart flow
 - Unit tests for core domain modules
+- Gameboard reports `sunkShip` coordinates and `areSunk` boolean to support AI and UI updates
 
 ## Project structure (important folders)
 - src/
@@ -33,6 +53,7 @@ A small Battleship implementation built with vanilla JavaScript, modular factori
   - Controllers/
     - GameMediator.js (central coordinator)
   - tests/
+    - player.test.js
     - ship.test.js
     - gameboard.test.js
   - eventBus.js
@@ -52,6 +73,6 @@ A small Battleship implementation built with vanilla JavaScript, modular factori
 
 ## Testing
 - Unit tests live in src/tests and can be run with jest.
-- Tests currently focus on Ship and Gameboard behavior. Add more as you extract logic from controllers/UI.
+- Tests currently focus on Ship, Gameboard and "Computer" Player behavior.
 
 
